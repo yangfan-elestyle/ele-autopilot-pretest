@@ -1,23 +1,21 @@
 import 'server-only';
 
-import { Database } from 'bun:sqlite';
+import Database from 'better-sqlite3';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 declare global {
-  var __eleAutopilotDb: Database | undefined;
+  var __eleAutopilotDb: Database.Database | undefined;
 }
 
 function getDbPath() {
   return resolve(process.cwd(), process.env.SQLITE_DB_PATH ?? 'data/app.sqlite');
 }
 
-function initSchema(db: Database) {
-  db.run(`
-    PRAGMA foreign_keys = ON;
-  `);
+function initSchema(db: Database.Database) {
+  db.exec(`PRAGMA foreign_keys = ON;`);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS folders (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -27,7 +25,7 @@ function initSchema(db: Database) {
     );
   `);
 
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
       folder_id TEXT NOT NULL REFERENCES folders(id) ON DELETE RESTRICT,
@@ -40,20 +38,20 @@ function initSchema(db: Database) {
 
   // 迁移：为已有 tasks 表添加 title 列
   try {
-    db.run(`ALTER TABLE tasks ADD COLUMN title TEXT`);
+    db.exec(`ALTER TABLE tasks ADD COLUMN title TEXT`);
   } catch {
     // 列已存在则忽略
   }
 
-  db.run(`CREATE INDEX IF NOT EXISTS idx_folders_parent_id ON folders(parent_id);`);
-  db.run(
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_folders_parent_id ON folders(parent_id);`);
+  db.exec(
     `CREATE INDEX IF NOT EXISTS idx_folders_order ON folders(parent_id, order_index, created_at);`,
   );
-  db.run(`CREATE INDEX IF NOT EXISTS idx_tasks_folder_id ON tasks(folder_id);`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_folder_id ON tasks(folder_id);`);
 
   // jobs 表：Job 执行记录（一个 TaskRow 执行一次 = 一个 Job）
   // 注：Local 侧直接使用 Server 的 job.id，不再有独立的 local_job_id
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS jobs (
       id TEXT PRIMARY KEY,
       task_id TEXT NOT NULL,
@@ -67,14 +65,14 @@ function initSchema(db: Database) {
     );
   `);
 
-  db.run(`CREATE INDEX IF NOT EXISTS idx_jobs_task_id ON jobs(task_id);`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at);`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_jobs_task_id ON jobs(task_id);`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at);`);
 
   // job_tasks 表：flat 展开后每个任务的执行记录
   // 一个 Job 执行时会递归展开 sub_ids，flat 成任务数组，每个任务对应一条 job_task
   // 重要：result 字段存储完整的执行结果（可能非常大，包含每一步的详细信息）
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS job_tasks (
       id TEXT PRIMARY KEY,
       job_id TEXT NOT NULL,
@@ -93,16 +91,16 @@ function initSchema(db: Database) {
 
   // 迁移：为已有 job_tasks 表添加 task_title 列
   try {
-    db.run(`ALTER TABLE job_tasks ADD COLUMN task_title TEXT`);
+    db.exec(`ALTER TABLE job_tasks ADD COLUMN task_title TEXT`);
   } catch {
     // 列已存在则忽略
   }
 
-  db.run(`CREATE INDEX IF NOT EXISTS idx_job_tasks_job_id ON job_tasks(job_id);`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_job_tasks_status ON job_tasks(status);`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_job_tasks_job_id ON job_tasks(job_id);`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_job_tasks_status ON job_tasks(status);`);
 
   // settings 表：全局配置（key-value 结构）
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
@@ -125,14 +123,14 @@ function initSchema(db: Database) {
     override_system_message: '',
     extend_system_message: '',
   });
-  db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('agent_config', ?)`, [
+  db.prepare(`INSERT OR IGNORE INTO settings (key, value) VALUES ('agent_config', ?)`).run(
     defaultAgentConfig,
-  ]);
+  );
 }
 
-function seedTestData(db: Database) {
+function seedTestData(db: Database.Database) {
   // 检查是否已有数据
-  const count = db.query(`SELECT COUNT(1) as c FROM folders`).get() as {
+  const count = db.prepare(`SELECT COUNT(1) as c FROM folders`).get() as {
     c: number;
   };
   if (count.c > 0) return;
@@ -153,7 +151,7 @@ function seedTestData(db: Database) {
   ];
 
   // 插入顶级文件夹
-  const insertFolder = db.query(`INSERT INTO folders (id, name, parent_id) VALUES (?, ?, ?)`);
+  const insertFolder = db.prepare(`INSERT INTO folders (id, name, parent_id) VALUES (?, ?, ?)`);
   const topFolderIds: string[] = [];
   for (const f of folderData) {
     const id = crypto.randomUUID().toLowerCase();
@@ -242,7 +240,7 @@ function seedTestData(db: Database) {
   ];
 
   // 插入测试任务，分配到各个文件夹
-  const insertTask = db.query(`INSERT INTO tasks (id, folder_id, text) VALUES (?, ?, ?)`);
+  const insertTask = db.prepare(`INSERT INTO tasks (id, folder_id, text) VALUES (?, ?, ?)`);
   let taskIndex = 0;
   const totalTasks = 100;
 

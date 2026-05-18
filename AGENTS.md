@@ -1,17 +1,17 @@
 # Repository Guidelines
 
-本仓库是基于 Next.js App Router 的 Web 项目，使用 Bun 作为运行与依赖管理工具（见 `bun.lock`），UI 采用 Ant Design + Tailwind CSS。
+本仓库是基于 Next.js App Router 的 Web 项目，运行时为 Node.js 20+，使用 Bun 作为依赖管理工具（见 `bun.lock`），UI 采用 Ant Design + Tailwind CSS。
 
 ## Project Overview
 
-Ele-Autopilot 是一个用于 QA 任务管理的 Next.js App Router Web 应用，支持以文件夹层级组织任务。使用 Bun 作为运行时与依赖管理，SQLite 作为持久化存储，UI 基于 Ant Design + Tailwind CSS。
+Ele-Autopilot 是一个用于 QA 任务管理的 Next.js App Router Web 应用，支持以文件夹层级组织任务。运行时为 Node.js 20+，使用 Bun 作为依赖管理（`bun install` / `bun.lock`），SQLite 作为持久化存储，UI 基于 Ant Design + Tailwind CSS。
 
 ## Project Structure & Module Organization
 
 - `app/`: 页面与路由（App Router）。`app/api/` 为 Route Handlers（REST 风格接口）。
 - `app/api/admin/`: 管理后台 REST 接口（资源：`folders`、`tasks`；路由文件位于 `app/api/admin/**/route.ts`）。
 - `app/admin/`: 管理后台 UI；内部模块按 `_components/`、`_data/`、`_utils/`、`_theme/` 分层组织；`_types.ts` 为共享类型定义。
-- `lib/db/`: SQLite 数据访问层（`bun:sqlite`，仅服务端使用；客户端请通过 API 访问）。
+- `lib/db/`: SQLite 数据访问层（`better-sqlite3`，仅服务端使用；客户端请通过 API 访问）。
 - `public/`: 静态资源；`docs/`: 参考资料；`data/`: 本地 SQLite 文件（默认 `data/app.sqlite`，已在 `.gitignore` 中忽略）。
 
 ## Key Files

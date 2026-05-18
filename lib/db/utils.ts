@@ -30,17 +30,17 @@ export function normalizeOrder(order: string | undefined): SortOrder {
 
 export function queryAll<T>(sql: string, params: unknown[] = []) {
   const db = getDb();
-  return db.query(sql).all(...(params as never[])) as T[];
+  return db.prepare(sql).all(...(params as never[])) as T[];
 }
 
 export function queryGet<T>(sql: string, params: unknown[] = []) {
   const db = getDb();
-  return (db.query(sql).get(...(params as never[])) as T | null) ?? null;
+  return (db.prepare(sql).get(...(params as never[])) as T | null) ?? null;
 }
 
 export function queryRun(sql: string, params: unknown[] = []) {
   const db = getDb();
-  return db.query(sql).run(...(params as never[])) as {
+  return db.prepare(sql).run(...(params as never[])) as {
     changes: number;
   };
 }

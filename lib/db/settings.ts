@@ -10,7 +10,7 @@ import type { JobConfig, SettingRow } from './types';
  */
 export function getSetting(key: string): SettingRow | null {
   const db = getDb();
-  const row = db.query(`SELECT key, value, updated_at FROM settings WHERE key = ?`).get(key) as
+  const row = db.prepare(`SELECT key, value, updated_at FROM settings WHERE key = ?`).get(key) as
     | SettingRow
     | undefined;
   return row ?? null;
@@ -22,11 +22,10 @@ export function getSetting(key: string): SettingRow | null {
 export function setSetting(key: string, value: string): SettingRow {
   const db = getDb();
   const now = new Date().toISOString();
-  db.run(
+  db.prepare(
     `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
-    [key, value, now],
-  );
+  ).run(key, value, now);
   return { key, value, updated_at: now };
 }
 
