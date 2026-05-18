@@ -2,6 +2,16 @@
 
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [SemVer](https://semver.org/).
 
+## [0.3.2] - 2026-05-19
+
+### Fixed
+
+- `README.md` 仍以 SQLite + `better-sqlite3` + tarball + `react-router-serve` + `SQLITE_DB_PATH` + `bun run start` 描述项目 (v0.2.x 残留, v0.3.0 平台迁移漏更新) — 重写为 Cloudflare Workers + D1 + R2 + `wrangler deploy` 现状.
+
+### Removed
+
+- `scripts/migrate-screenshots-to-fs.mjs`: v0.2.5 一次性历史脚本 (SQLite base64 → 本地 fs), 依赖 `better-sqlite3` + `node:fs` 在 v0.3.0 平台迁移后已无法运行, 且 base64 → 路径迁移早已完成. 空目录 `scripts/` 一并清理.
+
 ## [0.3.1] - 2026-05-19
 
 ### Fixed
@@ -135,6 +145,7 @@
 - DB schema 迁移机制: `initSchema` 内 `ALTER TABLE ... ADD COLUMN` (try/catch 包裹) 幂等处理, 保证已有数据不被破坏.
 - `tag (v*)` 触发 GitHub Actions: 构建 Next.js `standalone` 产物, 打包 `linux-x64` tarball, 生成 SHA256 `checksums.txt`, 发布 GitHub Release.
 
+[0.3.2]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.3.2
 [0.3.1]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.3.1
 [0.3.0]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.3.0
 [0.2.5]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.5

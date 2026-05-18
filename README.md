@@ -1,34 +1,28 @@
 # ele-autopilot
 
-React Router v7 (Framework mode) Web 应用 — QA 任务管理后台. 文件夹层级组织任务, SQLite 持久化 (`better-sqlite3`), Ant Design + Tailwind UI. Node 20+ + Bun. 改完代码 → 在 `CHANGELOG.md` 顶部新增版本段 → 按 [deploy.md](./deploy.md) 发布.
+React Router v7 (Framework mode) Web 应用 — QA 任务管理后台. 文件夹层级组织任务, Cloudflare D1 持久化 (prepared statement, async), Cloudflare R2 存截图, Ant Design + Tailwind UI. Node 22+ + Bun. 运行时 Cloudflare Workers (V8 isolate). 改完代码 → 在 `CHANGELOG.md` 顶部新增版本段 → 按 [deploy.md](./deploy.md) 发布 (push `v*` tag → Actions → `wrangler deploy`).
 
-## 部署 (服务器侧)
+## 部署
 
-打 `v*` tag 后, GitHub Actions 自动构建 RR7 SSR 产物 + 生产 `node_modules`, 打包成 `linux-x64.tar.gz` 发布 Release. 服务器拉取 + 启动:
+push `v*` tag 触发 GitHub Actions: 校验版本 → build → `wrangler d1 migrations apply --remote` → `wrangler deploy`. 部署成功后 Worker URL: `https://ele-autopilot.<account-subdomain>.workers.dev`.
 
-```bash
-TAG=v0.2.0
-curl -fsSLO "https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/download/${TAG}/ele-autopilot-${TAG}-linux-x64.tar.gz"
-tar -xzf "ele-autopilot-${TAG}-linux-x64.tar.gz"
-cd "ele-autopilot-${TAG}-linux-x64"
-HOSTNAME=0.0.0.0 PORT=3000 SQLITE_DB_PATH=/var/lib/ele-autopilot/app.sqlite \
-  ./node_modules/.bin/react-router-serve ./build/server/index.js
-```
+前置 (一次性):
 
-环境变量:
+- GitHub Secrets: `CLOUDFLARE_API_TOKEN` (Workers / D1 / R2 编辑权限) + `CLOUDFLARE_ACCOUNT_ID`.
+- D1 database (`ele-autopilot`) / R2 bucket (`ele-autopilot-screenshots`) 手动一次性创建, `database_id` 写入 `wrangler.jsonc`.
 
-- `HOSTNAME` / `PORT`: `react-router-serve` 监听地址 (默认 `localhost:3000`).
-- `SQLITE_DB_PATH`: SQLite 文件路径, 相对 `cwd` 解析 (默认 `data/app.sqlite`). 线上必须落在持久化目录, 否则升级覆盖时数据会丢.
+详见 [deploy.md](./deploy.md).
 
 ## 开发
 
 ```bash
 bun install
-bun dev                # http://localhost:3000 (Vite + RR7 HMR)
+bunx wrangler d1 migrations apply ele-autopilot --local   # 首次: 初始化 miniflare D1 schema
+bun dev                                                    # http://localhost:3000 (Vite + cloudflare 插件 + miniflare D1/R2)
 bun run lint
 bun run format
-bun run typecheck      # react-router typegen + tsc
-bun run build && bun run start
+bun run typecheck                                          # wrangler types + react-router typegen + tsc
+bun run build && bun run preview                           # wrangler dev 模拟生产产物
 ```
 
 React DevTools 独立窗口: 必须先 `bunx react-devtools` 再 `bun dev`, 反序无效.
