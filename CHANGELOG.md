@@ -2,6 +2,13 @@
 
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [SemVer](https://semver.org/).
 
+## [0.2.3] - 2026-05-18
+
+### Fixed
+
+- `.prettierignore` 仍写 `.next` (Next.js 产物目录, RR7 已无意义), 改为 RR7 实际产物 `build` / `.react-router`. 否则 `bun run format` 会扫这些目录里的生成文件.
+- `todos/link-serve-client.md` 架构图标签 `(Next.js + SQLite)` → `(React Router v7 + SQLite)`, 避免误导后续 agent 以为 server 还是 Next.js.
+
 ## [0.2.2] - 2026-05-18
 
 ### Removed
@@ -56,6 +63,7 @@
 - DB schema 迁移机制: `initSchema` 内 `ALTER TABLE ... ADD COLUMN` (try/catch 包裹) 幂等处理, 保证已有数据不被破坏.
 - `tag (v*)` 触发 GitHub Actions: 构建 Next.js `standalone` 产物, 打包 `linux-x64` tarball, 生成 SHA256 `checksums.txt`, 发布 GitHub Release.
 
+[0.2.3]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.3
 [0.2.2]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.2
 [0.2.1]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.1
 [0.2.0]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.0
