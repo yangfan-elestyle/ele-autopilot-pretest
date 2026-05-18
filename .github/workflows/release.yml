@@ -27,6 +27,15 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Verify tag matches package.json version
+        run: |
+          pkg_version="$(jq -r .version package.json)"
+          tag="${{ github.ref_name }}"
+          if [ "v${pkg_version}" != "${tag}" ]; then
+            echo "error: tag ${tag} does not match package.json version v${pkg_version}" >&2
+            exit 1
+          fi
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -46,13 +55,18 @@ jobs:
             cp -a public/. "$BUNDLE_DIR/public/"
           fi
           tar -czf "$BUNDLE_DIR.tar.gz" "$BUNDLE_DIR"
+          sha256sum "$BUNDLE_DIR.tar.gz" > checksums.txt
           ls -lh "$BUNDLE_DIR.tar.gz"
+          cat checksums.txt
           echo "BUNDLE_TARBALL=$BUNDLE_DIR.tar.gz" >> "$GITHUB_ENV"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.BUNDLE_TARBALL }}
+          files: |
+            ${{ env.BUNDLE_TARBALL }}
+            checksums.txt
           generate_release_notes: true
+          fail_on_unmatched_files: true
           draft: false
           prerelease: false
