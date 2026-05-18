@@ -2,6 +2,16 @@
 
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [SemVer](https://semver.org/).
 
+## [0.2.4] - 2026-05-18
+
+### Removed
+
+- `TaskActionResult.raw_history` 字段 — 该字段是 browser-use `AgentHistoryList.model_dump()` 的原样镜像, 与 `steps[]` 内容 100% 冗余 (thinking / evaluation / memory / next_goal / model_output / action / results 已全部结构化到 steps), 服务端 UI / API 零消费, 仅是 `job_tasks.result` 列的纯膨胀源. 同步清理 `lib/db/types.ts` / `app/admin/_types.ts` 类型定义与 `todos/link-serve-client.md` 设计文档 (类型 / 示例 / 树形图共 3 处).
+
+### Changed
+
+- 历史数据迁移: 对 `job_tasks.result` 执行 `UPDATE ... json_remove($.raw_history)` (404 行全量) + `VACUUM`. 物理库 6.2 GB → 5.8 GB (-400 MB / -6.5%), 单条 result 平均 16.0 MB → 14.5 MB. 需配套 `ele-autopilot-local` ≥ v0.1.4 (源头同步停止注入, 否则旧版 local 回调会重新写入该字段).
+
 ## [0.2.3] - 2026-05-18
 
 ### Fixed
@@ -63,6 +73,7 @@
 - DB schema 迁移机制: `initSchema` 内 `ALTER TABLE ... ADD COLUMN` (try/catch 包裹) 幂等处理, 保证已有数据不被破坏.
 - `tag (v*)` 触发 GitHub Actions: 构建 Next.js `standalone` 产物, 打包 `linux-x64` tarball, 生成 SHA256 `checksums.txt`, 发布 GitHub Release.
 
+[0.2.4]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.4
 [0.2.3]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.3
 [0.2.2]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.2
 [0.2.1]: https://github.com/yangfan-elestyle/ele-autopilot-pretest/releases/tag/v0.2.1

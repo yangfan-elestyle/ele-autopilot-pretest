@@ -83,7 +83,6 @@ export type TaskActionResult = {
     step_start_time: number;
     step_end_time: number;
   }>;
-  raw_history: string;
 };
 
 export type JobTask = {
@@ -112,7 +111,7 @@ export type JobTaskLite = {
   task_title: string | null;
   task_text: string;
   status: JobStatus;
-  /** 只包含 summary 摘要，不含 steps/raw_history 等大数据 */
+  /** 只包含 summary 摘要，不含 steps 等大数据 */
   result_summary: TaskActionResult['summary'] | null;
   error: string | null;
   started_at: string | null;

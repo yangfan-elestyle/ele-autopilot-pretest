@@ -349,7 +349,6 @@ type TaskActionResult = {
     step_start_time: number;
     step_end_time: number;
   }>;
-  raw_history: string; // 原始历史记录
 };
 ```
 
@@ -500,8 +499,7 @@ POST /api/jobs/{job_id}/callback/task
         ...
       },
       ...
-    ],
-    "raw_history": "..."            // 原始历史记录
+    ]
   },
   "error": null,                    // status=failed 时有值（与 result 互斥）
   "started_at": "2026-02-02T12:00:01.000Z",   // 必填
@@ -1337,15 +1335,14 @@ TaskActionResult
 │   ├── visited_urls   # 访问的 URL 列表
 │   ├── action_sequence # 动作序列
 │   └── errors, action_errors
-├── steps[]            # 每一步的详细信息（可能很多）
-│   ├── step_number, url, page_title, tabs
-│   ├── thinking       # LLM 思考过程
-│   ├── evaluation     # 上一步评估
-│   ├── memory, next_goal
-│   ├── model_output   # LLM 输出（thinking、action 等）
-│   ├── results        # 执行结果
-│   └── duration_seconds, step_start_time, step_end_time
-└── raw_history        # 原始历史记录
+└── steps[]            # 每一步的详细信息（可能很多）
+    ├── step_number, url, page_title, tabs
+    ├── thinking       # LLM 思考过程
+    ├── evaluation     # 上一步评估
+    ├── memory, next_goal
+    ├── model_output   # LLM 输出（thinking、action 等）
+    ├── results        # 执行结果
+    └── duration_seconds, step_start_time, step_end_time
 ```
 
 ### 10.2 数据量说明

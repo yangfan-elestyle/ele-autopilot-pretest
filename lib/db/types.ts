@@ -124,7 +124,6 @@ export type TaskActionResult = {
     step_start_time: number;
     step_end_time: number;
   }>;
-  raw_history: string;
 };
 
 // Job 详情（含 job_tasks）
@@ -146,7 +145,7 @@ export type JobTaskLiteRow = {
   task_title: string | null;
   task_text: string;
   status: JobStatus;
-  /** 只包含 summary 摘要，不含 steps/raw_history 等大数据 */
+  /** 只包含 summary 摘要，不含 steps 等大数据 */
   result_summary: TaskActionResult['summary'] | null;
   error: string | null;
   started_at: string | null;
